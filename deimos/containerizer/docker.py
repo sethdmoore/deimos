@@ -53,7 +53,6 @@ class Docker(Containerizer, _Struct):
 
     def launch(self, launch_pb, *args):
         log.info(" ".join(args))
-        log.info("okay FFF")
         fork = False if "--no-fork" in args else True
         deimos.sig.install(self.log_signal)
         run_options = []
@@ -70,7 +69,14 @@ class Docker(Containerizer, _Struct):
             os.chdir(launchy.directory)
         # TODO: if launchy.user:
         #           os.seteuid(launchy.user)
-        url, options = launchy.container
+
+        # old method was unpacking a tuple from a dict
+        url = launchy.container["image"]
+        options = launchy.container["options"]
+
+        if "exec" in launchy.container:
+            exechook = launchy.container["exec"]
+
         options, trailing_argv = split_on(options, "//")
         url, options = self.container_settings.override(url, options)
 
@@ -128,6 +134,8 @@ class Docker(Containerizer, _Struct):
             env += mesos_env() + [("MESOS_DIRECTORY", self.workdir)]
 
         self.place_dockercfg()
+
+        log.info(launchy.ports)
 
         runner_argv = deimos.docker.run(run_options, image, true_argv,
                                         env=env, ports=launchy.ports,
