@@ -109,9 +109,11 @@ class Docker(Containerizer, _Struct):
 
         cpus, mems = launchy.cpu_and_mem
         env = launchy.env
+
         run_options += options
 
-
+        log.info("SMDEBUG")
+        log.info(type(env))
         log.info("SMDEBUG")
         log.info(env)
 
@@ -142,6 +144,8 @@ class Docker(Containerizer, _Struct):
         else:
             env += mesos_env() + [("MESOS_DIRECTORY", self.workdir)]
 
+        popen_env = dict(env)
+
         self.place_dockercfg()
 
         log.info(launchy.ports)
@@ -153,10 +157,15 @@ class Docker(Containerizer, _Struct):
         log_mesos_env(logging.DEBUG)
 
         observer = None
+        
         with open("stdout", "w") as o:        # This awkward multi 'with' is a
             with open("stderr", "w") as e:    # concession to 2.6 compatibility
                 with open(os.devnull) as devnull:
                     log.info(deimos.cmd.present(runner_argv))
+                    self.prelaunch = subprocess.Popen(prelaunch, stdin=devnull,
+                                                      stdout=o,
+                                                      stderr=e,
+                                                      env=popen_env)
                     self.runner = subprocess.Popen(runner_argv, stdin=devnull,
                                                                 stdout=o,
                                                                 stderr=e)
