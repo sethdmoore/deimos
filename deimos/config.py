@@ -105,14 +105,12 @@ class Image(_Struct):
 
 class Hooks(_Struct):
 
-    def __init__(self, unpack=True, prelaunch=[], postdestroy=[]):
+    def __init__(self, unpack=False, prelaunch=[], postdestroy=[]):
         _Struct.__init__(self, prelaunch=coercearray(prelaunch),
                                postdestroy=coercearray(postdestroy))
-        log.warning("SMDEBUG")
-        log.warning(prelaunch)
 
     def override(self, options=[]):
-        pass
+        return self.prelaunch.override(prelaunch), self.postdestroy.override(postdestroy)
 
 
 class Options(_Struct):

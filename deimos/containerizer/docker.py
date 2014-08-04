@@ -71,6 +71,16 @@ class Docker(Containerizer, _Struct):
         mesos_directory()  # Redundant?
         if launchy.directory:
             os.chdir(launchy.directory)
+
+        prelaunch = self.hooks.prelaunch
+        postdestroy = self.hooks.postdestroy
+
+        log.info("SMDEBUG")
+        log.info(type(prelaunch))
+
+        # log.info("SMDEBUG %r" % prelaunch)
+        # log.info("%r" % postdestroy)
+
         # TODO: if launchy.user:
         #           os.seteuid(launchy.user)
         url, options = launchy.container
@@ -101,9 +111,11 @@ class Docker(Containerizer, _Struct):
         env = launchy.env
         run_options += options
 
-        # We need to wrap the call to Docker in a call to the Mesos executor
-        # if no executor is passed as part of the task. We need to pass the
-        # MESOS_* environment variables in to the container if we're going to
+
+        log.info("SMDEBUG")
+        log.info(env)
+
+        # We need to wrap the call to Docker in a call to the Mesos executor # MESOS_* environment variables in to the container if we're going to
         # start an executor.
         observer_argv = None
         if launchy.needs_observer:
