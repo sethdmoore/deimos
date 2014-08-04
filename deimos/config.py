@@ -205,9 +205,7 @@ def parse(f):
         parsed["index"] = parsed["docker.index"]
         del parsed["docker.index"]
     if "hooks" in parsed:
-        print "SMDEBUG WHAT"
-        print parsed["hooks"]
-        parsed["hooks"]
+        log.info("SMDEBUG WHAT")
     else:
         log.info("SMDEBUG")
         log.info("No hooks in config :[")
