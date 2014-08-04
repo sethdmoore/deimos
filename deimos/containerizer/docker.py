@@ -55,6 +55,7 @@ class Docker(Containerizer, _Struct):
 
     def launch(self, launch_pb, *args):
         log.info(" ".join(args))
+        log.info("word")
         log.info(self.exec_hooks)
         fork = False if "--no-fork" in args else True
         deimos.sig.install(self.log_signal)
@@ -72,14 +73,7 @@ class Docker(Containerizer, _Struct):
             os.chdir(launchy.directory)
         # TODO: if launchy.user:
         #           os.seteuid(launchy.user)
-
-        # old method was unpacking a tuple from a dict
-        url = launchy.container["image"]
-        options = launchy.container["options"]
-
-        if "exec" in launchy.container:
-            exechook = launchy.container["exec"]
-
+        url, options = launchy.container
         options, trailing_argv = split_on(options, "//")
         url, options = self.container_settings.override(url, options)
 

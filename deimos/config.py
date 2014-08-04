@@ -105,9 +105,8 @@ class Image(_Struct):
 
 class Hooks(_Struct):
 
-    def __init__(self, default=default, prelaunch=[], postdestroy=[]):
-        _Struct.__init__(self, default=coercearray(default),
-                               prelaunch=coercearray(prelaunch),
+    def __init__(self, prelaunch=[], postdestroy=[]):
+        _Struct.__init__(self, prelaunch=coercearray(prelaunch),
                                postdestroy=coercearray(postdestroy))
 
     def override(self, options=[]):
