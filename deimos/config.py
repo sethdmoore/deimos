@@ -105,7 +105,7 @@ class Image(_Struct):
 
 class Hooks(_Struct):
 
-    def __init__(self, prelaunch=[], postdestroy=[]):
+    def __init__(self, unpack=True, prelaunch=[], postdestroy=[]):
         _Struct.__init__(self, prelaunch=coercearray(prelaunch),
                                postdestroy=coercearray(postdestroy))
 
@@ -185,6 +185,7 @@ def parse(f):
                 ("docker", Docker),
                 ("docker.index", DockerIndex),
                 ("containers.image", Image),
+                ("hooks", Hooks),
                 ("containers.options", Options)]
     for key, cls in sections:
         try:
@@ -204,7 +205,12 @@ def parse(f):
         parsed["index"] = parsed["docker.index"]
         del parsed["docker.index"]
     if "hooks" in parsed:
-        log.info(parsed["hooks"])
+        print "SMDEBUG WHAT"
+        print parsed["hooks"]
+        parsed["hooks"]
+    else:
+        log.info("SMDEBUG")
+        log.info("No hooks in config :[")
     return _Struct(**parsed)
 
 
@@ -218,3 +224,8 @@ search_path = ["./deimos.cfg",
                "/etc/deimos.cfg",
                "/usr/etc/deimos.cfg",
                "/usr/local/etc/deimos.cfg"]
+
+
+# x = load_configuration()
+# f = path()
+# parse(f)

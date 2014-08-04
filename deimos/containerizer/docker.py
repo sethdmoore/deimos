@@ -55,7 +55,7 @@ class Docker(Containerizer, _Struct):
 
     def launch(self, launch_pb, *args):
         log.info(" ".join(args))
-        log.info("word")
+        log.info("SMDEBUG")
         log.info(self.exec_hooks)
         fork = False if "--no-fork" in args else True
         deimos.sig.install(self.log_signal)
