@@ -205,7 +205,7 @@ def parse(f):
         parsed["index"] = parsed["docker.index"]
         del parsed["docker.index"]
     if "hooks" in parsed:
-        log.info(parsed["hooks")
+        log.info(parsed["hooks"])
     return _Struct(**parsed)
 
 
