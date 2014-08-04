@@ -108,6 +108,8 @@ class Hooks(_Struct):
     def __init__(self, unpack=True, prelaunch=[], postdestroy=[]):
         _Struct.__init__(self, prelaunch=coercearray(prelaunch),
                                postdestroy=coercearray(postdestroy))
+        log.warning("SMDEBUG")
+        log.warning(prelaunch)
 
     def override(self, options=[]):
         pass
@@ -206,6 +208,7 @@ def parse(f):
         del parsed["docker.index"]
     if "hooks" in parsed:
         log.info("SMDEBUG WHAT")
+        # parsed["exec_hooks"] = parsed["hooks"]
     else:
         log.info("SMDEBUG")
         log.info("No hooks in config :[")
@@ -223,7 +226,3 @@ search_path = ["./deimos.cfg",
                "/usr/etc/deimos.cfg",
                "/usr/local/etc/deimos.cfg"]
 
-
-# x = load_configuration()
-# f = path()
-# parse(f)

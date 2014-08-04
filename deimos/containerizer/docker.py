@@ -40,14 +40,14 @@ class Docker(Containerizer, _Struct):
                        state_root="/tmp/deimos",
                        shared_dir="fs",
                        optimistic_unpack=True,
-                       exec_hooks=deimos.config.Hooks(),
+                       hooks=deimos.config.Hooks(),
                        container_settings=deimos.config.Containers(),
                        index_settings=deimos.config.DockerIndex()):
         _Struct.__init__(self, workdir=workdir,
                                state_root=state_root,
                                shared_dir=shared_dir,
                                optimistic_unpack=optimistic_unpack,
-                               exec_hooks=exec_hooks,
+                               hooks=hooks,
                                container_settings=container_settings,
                                index_settings=index_settings,
                                runner=None,
@@ -55,8 +55,8 @@ class Docker(Containerizer, _Struct):
 
     def launch(self, launch_pb, *args):
         log.info(" ".join(args))
-        log.info("SMDEBUG")
-        log.info(self.exec_hooks)
+        log.info("SMDEBUG: hook hook")
+        log.info(self.hooks)
         fork = False if "--no-fork" in args else True
         deimos.sig.install(self.log_signal)
         run_options = []
