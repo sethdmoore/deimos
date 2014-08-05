@@ -73,7 +73,6 @@ class Docker(Containerizer, _Struct):
             os.chdir(launchy.directory)
 
         prelaunch = self.hooks.prelaunch
-        postdestroy = self.hooks.postdestroy
 
         log.info("SMDEBUG")
         log.info(type(prelaunch))
@@ -298,6 +297,15 @@ class Docker(Containerizer, _Struct):
         log.info(" ".join(args))
         container_id = destroy_pb.container_id.value
         state = deimos.state.State(self.state_root, mesos_id=container_id)
+        with open("stdout", "w") as o:        # This awkward multi 'with' is a
+            with open("stderr", "w") as e:    # concession to 2.6 compatibility
+                with open(os.devnull) as devnull:
+                    env = launchy.env
+                    popen_env = dict(env)
+                    self.prelaunch = subprocess.Popen(prelaunch, stdin=devnull,
+                                                      stdout=o,
+                                                      stderr=e,
+                                                      env=popen_env)
         state.await_launch()
         lk_d = state.lock("destroy", LOCK_EX)
         if state.exit() is None:
