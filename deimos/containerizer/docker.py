@@ -161,10 +161,12 @@ class Docker(Containerizer, _Struct):
             with open("stderr", "w") as e:    # concession to 2.6 compatibility
                 with open(os.devnull) as devnull:
                     log.info(deimos.cmd.present(runner_argv))
-                    self.prelaunch = subprocess.Popen(prelaunch, stdin=devnull,
-                                                      stdout=o,
-                                                      stderr=e,
-                                                      env=popen_env)
+                    # test for unset lists
+                    if prelaunch:
+                        subprocess.Popen(prelaunch, stdin=devnull,
+                                         stdout=o,
+                                         stderr=e,
+                                         env=popen_env)
                     self.runner = subprocess.Popen(runner_argv, stdin=devnull,
                                                                 stdout=o,
                                                                 stderr=e)
@@ -218,6 +220,7 @@ class Docker(Containerizer, _Struct):
                 log.info(msg)
             else:
                 log.warning(msg)
+        log.info("SMDEBUG EXIT??")
         return state.exit()
 
     def update(self, update_pb, *args):
@@ -296,16 +299,22 @@ class Docker(Containerizer, _Struct):
     def destroy(self, destroy_pb, *args):
         log.info(" ".join(args))
         container_id = destroy_pb.container_id.value
+        log.warning("SMDEBUG ABOUT TO DESTROY")
         state = deimos.state.State(self.state_root, mesos_id=container_id)
+        launchy = deimos.mesos.Launch(launch_pb)
+        postdestroy = self.hooks.postdestroy
         with open("stdout", "w") as o:        # This awkward multi 'with' is a
             with open("stderr", "w") as e:    # concession to 2.6 compatibility
                 with open(os.devnull) as devnull:
                     env = launchy.env
                     popen_env = dict(env)
-                    self.prelaunch = subprocess.Popen(prelaunch, stdin=devnull,
-                                                      stdout=o,
-                                                      stderr=e,
-                                                      env=popen_env)
+                    log.info("SMDEBUG %s" % popen_env)
+                    log.info("SMDEBUG %s" % postdestroy)
+                    if postdestroy:
+                        subprocess.Popen(postdestroy, stdin=devnull,
+                                         stdout=o,
+                                         stderr=e,
+                                         env=popen_env)
         state.await_launch()
         lk_d = state.lock("destroy", LOCK_EX)
         if state.exit() is None:
