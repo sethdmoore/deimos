@@ -220,6 +220,20 @@ class Docker(Containerizer, _Struct):
                 log.info(msg)
             else:
                 log.warning(msg)
+
+        postdestroy = self.hooks.postdestroy
+        env = launchy.env
+        popen_env = dict(env)
+        log.info("SMDEBUG %s" % popen_env)
+        log.info("SMDEBUG %s" % postdestroy)
+        with open(os.devnull) as devnull:
+            if postdestroy:
+                subprocess.Popen(postdestroy, stdin=devnull,
+                                 stdout=devnull,
+                                 stderr=devnull,
+                                 env=popen_env)
+ 
+
         log.info("SMDEBUG EXIT??")
         return state.exit()
 
@@ -301,20 +315,6 @@ class Docker(Containerizer, _Struct):
         container_id = destroy_pb.container_id.value
         log.warning("SMDEBUG ABOUT TO DESTROY")
         state = deimos.state.State(self.state_root, mesos_id=container_id)
-        launchy = deimos.mesos.Launch(launch_pb)
-        postdestroy = self.hooks.postdestroy
-        with open("stdout", "w") as o:        # This awkward multi 'with' is a
-            with open("stderr", "w") as e:    # concession to 2.6 compatibility
-                with open(os.devnull) as devnull:
-                    env = launchy.env
-                    popen_env = dict(env)
-                    log.info("SMDEBUG %s" % popen_env)
-                    log.info("SMDEBUG %s" % postdestroy)
-                    if postdestroy:
-                        subprocess.Popen(postdestroy, stdin=devnull,
-                                         stdout=o,
-                                         stderr=e,
-                                         env=popen_env)
         state.await_launch()
         lk_d = state.lock("destroy", LOCK_EX)
         if state.exit() is None:
