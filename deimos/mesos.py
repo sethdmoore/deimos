@@ -1,5 +1,4 @@
 from deimos._struct import _Struct
-from deimos.logger import log
 
 
 class Launch(_Struct):
@@ -33,7 +32,6 @@ class LaunchProto(object):
 
     def executor(self):
         if self.proto.HasField("task_info"):
-            log.info("SMDEBUG task_info")
             return None
         if self.proto.HasField("executor_info"):
             return self.proto.executor_info
@@ -79,8 +77,9 @@ class LaunchProto(object):
 
     def env(self):
         cmd = self.command()
-        log.info("SMDEBUG %r" % cmd)
-        return [(_.name, _.value) for _ in cmd.environment.variables]
+        self.env = [(_.name, _.value) for _ in cmd.environment.variables] 
+        self.env += [("TASK_INFO", self.proto.task_info.name)]
+        return self.env
 
     def ports(self):
         resources = [_.ranges.range for _ in self.resources()
