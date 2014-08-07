@@ -77,7 +77,8 @@ class LaunchProto(object):
 
     def env(self):
         cmd = self.command()
-        self.env = [(_.name, _.value) for _ in cmd.environment.variables] 
+        self.env = [(_.name, _.value) for _ in cmd.environment.variables]
+        # Add task_info.name to the environment variables
         self.env += [("TASK_INFO", self.proto.task_info.name)]
         return self.env
 

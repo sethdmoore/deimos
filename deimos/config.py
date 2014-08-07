@@ -105,12 +105,12 @@ class Image(_Struct):
 
 class Hooks(_Struct):
 
-    def __init__(self, unpack=False, prelaunch=[], postdestroy=[]):
-        _Struct.__init__(self, prelaunch=coercearray(prelaunch),
-                               postdestroy=coercearray(postdestroy))
+    def __init__(self, unpack=False, onlaunch=[], ondestroy=[]):
+        _Struct.__init__(self, onlaunch=coercearray(onlaunch),
+                               ondestroy=coercearray(ondestroy))
 
     def override(self, options=[]):
-        return self.prelaunch.override(prelaunch), self.postdestroy.override(postdestroy)
+        return self.onlaunch.override(onlaunch), self.ondestroy.override(ondestroy)
 
 
 class Options(_Struct):
@@ -204,12 +204,6 @@ def parse(f):
     if "docker.index" in parsed:
         parsed["index"] = parsed["docker.index"]
         del parsed["docker.index"]
-    if "hooks" in parsed:
-        log.info("SMDEBUG WHAT")
-        # parsed["exec_hooks"] = parsed["hooks"]
-    else:
-        log.info("SMDEBUG")
-        log.info("No hooks in config :[")
     return _Struct(**parsed)
 
 
@@ -223,4 +217,3 @@ search_path = ["./deimos.cfg",
                "/etc/deimos.cfg",
                "/usr/etc/deimos.cfg",
                "/usr/local/etc/deimos.cfg"]
-

@@ -55,8 +55,6 @@ class Docker(Containerizer, _Struct):
 
     def launch(self, launch_pb, *args):
         log.info(" ".join(args))
-        log.info("SMDEBUG: hook hook")
-        log.info(self.hooks)
         fork = False if "--no-fork" in args else True
         deimos.sig.install(self.log_signal)
         run_options = []
@@ -71,15 +69,6 @@ class Docker(Containerizer, _Struct):
         mesos_directory()  # Redundant?
         if launchy.directory:
             os.chdir(launchy.directory)
-
-        prelaunch = self.hooks.prelaunch
-
-        log.info("SMDEBUG")
-        log.info(type(prelaunch))
-
-        # log.info("SMDEBUG %r" % prelaunch)
-        # log.info("%r" % postdestroy)
-
         # TODO: if launchy.user:
         #           os.seteuid(launchy.user)
         url, options = launchy.container
@@ -108,15 +97,11 @@ class Docker(Containerizer, _Struct):
 
         cpus, mems = launchy.cpu_and_mem
         env = launchy.env
-
         run_options += options
 
-        log.info("SMDEBUG")
-        log.info(type(env))
-        log.info("SMDEBUG")
-        log.info(env)
-
-        # We need to wrap the call to Docker in a call to the Mesos executor # MESOS_* environment variables in to the container if we're going to
+        # We need to wrap the call to Docker in a call to the Mesos executor
+        # if no executor is passed as part of the task. We need to pass the
+        # MESOS_* environment variables in to the container if we're going to
         # start an executor.
         observer_argv = None
         if launchy.needs_observer:
@@ -143,11 +128,10 @@ class Docker(Containerizer, _Struct):
         else:
             env += mesos_env() + [("MESOS_DIRECTORY", self.workdir)]
 
+        # Flatten our env list of tuples into dictionary object for Popen
         popen_env = dict(env)
 
         self.place_dockercfg()
-
-        log.info(launchy.ports)
 
         runner_argv = deimos.docker.run(run_options, image, true_argv,
                                         env=env, ports=launchy.ports,
@@ -156,17 +140,24 @@ class Docker(Containerizer, _Struct):
         log_mesos_env(logging.DEBUG)
 
         observer = None
-        
         with open("stdout", "w") as o:        # This awkward multi 'with' is a
             with open("stderr", "w") as e:    # concession to 2.6 compatibility
                 with open(os.devnull) as devnull:
                     log.info(deimos.cmd.present(runner_argv))
-                    # test for unset lists
-                    if prelaunch:
-                        subprocess.Popen(prelaunch, stdin=devnull,
-                                         stdout=o,
-                                         stderr=e,
-                                         env=popen_env)
+
+                    onlaunch = self.hooks.onlaunch
+                    # test for default configuration (empty list)
+                    if onlaunch:
+                        # We're going to catch all exceptions because it's not
+                        # in scope for Deimos to stack trace on a hook error
+                        try:
+                            subprocess.Popen(onlaunch, stdin=devnull,
+                                             stdout=devnull,
+                                             stderr=devnull,
+                                             env=popen_env)
+                        except Exception as e:
+                            log.warning("onlaunch hook failed with %s" % e)
+
                     self.runner = subprocess.Popen(runner_argv, stdin=devnull,
                                                                 stdout=o,
                                                                 stderr=e)
@@ -221,20 +212,18 @@ class Docker(Containerizer, _Struct):
             else:
                 log.warning(msg)
 
-        postdestroy = self.hooks.postdestroy
-        env = launchy.env
-        popen_env = dict(env)
-        log.info("SMDEBUG %s" % popen_env)
-        log.info("SMDEBUG %s" % postdestroy)
         with open(os.devnull) as devnull:
-            if postdestroy:
-                subprocess.Popen(postdestroy, stdin=devnull,
-                                 stdout=devnull,
-                                 stderr=devnull,
-                                 env=popen_env)
- 
+            ondestroy = self.hooks.ondestroy
+            if ondestroy:
+                # Deimos shouldn't care if the hook fails. The hook should implement its own error handling
+                try:
+                    subprocess.Popen(ondestroy, stdin=devnull,
+                                     stdout=devnull,
+                                     stderr=devnull,
+                                     env=popen_env)
+                except Exception as e:
+                    log.warning("ondestroy hook failed with %s" % e)
 
-        log.info("SMDEBUG EXIT??")
         return state.exit()
 
     def update(self, update_pb, *args):
@@ -313,7 +302,6 @@ class Docker(Containerizer, _Struct):
     def destroy(self, destroy_pb, *args):
         log.info(" ".join(args))
         container_id = destroy_pb.container_id.value
-        log.warning("SMDEBUG ABOUT TO DESTROY")
         state = deimos.state.State(self.state_root, mesos_id=container_id)
         state.await_launch()
         lk_d = state.lock("destroy", LOCK_EX)
