@@ -145,7 +145,9 @@ class Docker(Containerizer, _Struct):
                 with open(os.devnull) as devnull:
                     log.info(deimos.cmd.present(runner_argv))
 
+                    log.info("SMDEBUG HERE WE GO AGAIN")
                     onlaunch = self.hooks.onlaunch
+                    log.info("SMDEBUG %r" % onlaunch)
                     # test for default configuration (empty list)
                     if onlaunch:
                         # We're going to catch all exceptions because it's not
